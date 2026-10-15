@@ -57,30 +57,40 @@ Legend: **F** free / open source · **FT** free tier · **P** paid
 |---|---|---|---|
 | Fine-tuning | HF TRL + PEFT on Mac (MPS) and MLX-LM (F) | Unsloth on Colab/Kaggle free GPUs, Axolotl, LLaMA-Factory, managed FT (OpenAI, Together — P) | 12 |
 | Experiment tracking | W&B (FT) | MLflow, TensorBoard, Trackio | 12 |
-| Quantization | GGUF via llama.cpp (F) | AWQ, GPTQ, bitsandbytes, MLX quants | 13 |
-| Inference server | vLLM (F) | SGLang, TGI, TensorRT-LLM, llama.cpp server, Ollama | 13 |
+| Quantization | Ollama `--quantize int4/int8` + MLX quants on Mac (F) | GGUF via llama.cpp (k-quants), AWQ, GPTQ, bitsandbytes, FP8/NVFP4/MXFP4 (GPU) | 13 |
+| Inference server | Ollama / MLX-LM server locally; vLLM on GPUs (F) | SGLang, TensorRT-LLM, llama.cpp server, TGI (maintenance mode) | 13 |
 | API | FastAPI (F) | Litestar, Flask, LangServe | 13 |
 | UI | Gradio (F) | Streamlit, Chainlit, Open WebUI, Next.js + Vercel AI SDK | 13 |
-| Hosting | Hugging Face Spaces (FT) | Modal (FT), Render, Fly.io, Railway, Cloud Run, RunPod (P), AWS Bedrock / GCP Vertex / Azure AI Foundry (P) | 13 |
+| Hosting | Hugging Face Docker Spaces (FT; built remotely, no local Docker) | Modal (FT), Render, Fly.io, Railway, Cloud Run, RunPod (P), AWS Bedrock / GCP Vertex / Azure AI Foundry (P) | 13 |
 
 ## 6. Multimodal
 
 | Layer | Default | Alternatives | Chapter |
 |---|---|---|---|
-| Vision-language | Gemini Flash (FT) | GPT, Claude, Qwen-VL, Gemma, SmolVLM | 14 |
-| Speech-to-text | faster-whisper (F) | Deepgram (FT), AssemblyAI (FT), OpenAI (P) | 14 |
+| Vision-language | Gemini Flash (FT) + Qwen3-VL 2B on Ollama (F) | GPT, Claude, Gemma, InternVL, SmolVLM, mlx-vlm | 14 |
+| Speech-to-text | mlx-whisper on Mac (F) + Groq Whisper API (FT) | faster-whisper, whisper.cpp, Parakeet, Deepgram (FT), AssemblyAI (FT), OpenAI (P) | 14 |
 | Text-to-speech | Kokoro (F) | ElevenLabs (P), OpenAI TTS (P) | 14 |
-| Voice agents | Pipecat (F) | LiveKit Agents, realtime APIs | 14 |
-| Image generation | diffusers (F) | ComfyUI, API models | 14 |
+| Voice agents | cascaded pipeline from scratch, then Pipecat (F) | LiveKit Agents, OpenAI Realtime / Gemini Live | 14 |
+| Image generation | diffusers + SD-Turbo (F) | FLUX, SD 3.5, Qwen-Image, ComfyUI, API models (Gemini/Imagen, GPT-Image) | 14 |
+| Multimodal retrieval | ColPali family (ColSmol) + VLM captions (F) | CLIP/SigLIP, Byaldi, multi-vector DBs (Vespa, Qdrant, LanceDB) | 14 |
 
 ## Version gotchas found while building the lessons (Oct 2026)
 - `mcp` 2.x renamed `FastMCP` → `MCPServer` (`from mcp.server.mcpserver import MCPServer`) and snake_cased fields (`input_schema`).
 - Haystack 3.x moved its sentence-transformers embedders out of core (08.03 uses a 6-line custom component instead).
 - TRL 1.15 trainers require a Triton (Linux-only) fused LM head → pinned `trl<1.15` for macOS.
 - Ollama's OpenAI-compatible API ignores `tool_choice`; agent loops nudge instead (08.06, 09.x).
+- Ollama 0.40 `--quantize` takes `int4`/`int8`/`nvfp4`/`mxfp4`/`mxfp8` (not `q8_0`), and importing safetensors ignores HF's `chat_template` →
+  always set `TEMPLATE` in the Modelfile (12.06, 13.01).
+- transformers 5 loads weights in parallel threads; with `device_map` on MPS (e.g. `lm_eval`) that segfaults → `HF_DEACTIVATE_ASYNC_LOAD=1`.
+- `qwen3-vl:2b` is the *thinking* variant and ignores `reasoning_effort` → use `qwen3-vl:2b-instruct`. Ollama raw `/api/generate` on thinking
+  models returns text in `thinking` unless `"think": false` (15.01).
+- `colpali-engine` pins `torch<2.14` and `peft<0.21` → run it isolated (14.05). Hugging Face Xet downloads can stall: `HF_HUB_DISABLE_XET=1`.
+- Gradio 6 names a `ChatInterface` API endpoint after the function (`/respond`); Streamlit `AppTest.from_file` needs an absolute path in notebooks.
+- Groq model ids come and go (e.g. `llama-3.1-8b-instant` is gone; `openai/gpt-oss-20b` / `-120b` available): list them with `client.models.list()`.
 - `arize-phoenix` needs `graphql-core<3.3`. Ragas 0.4.3, DeepEval and current Inspect AI (needs openai>=3.4) conflict with this env: run them with `uv run --isolated --with ...`.
 
 ## Where money might be unavoidable
 - **Frontier closed models** (OpenAI/Anthropic) for comparisons: ~$5–20 total covers the whole course if you keep tests small. Optional; free tiers do most work.
-- **GPU beyond free quotas** (chapter 12 larger runs, chapter 15 pretraining): rent by the hour (RunPod/Modal/Lambda), usually a few dollars per experiment.
+- **GPU beyond free quotas** (chapter 12 larger runs, 13.02 vLLM, 15.02 nanochat): rent by the hour (RunPod/Modal/Lambda), usually a few dollars per experiment.
+  Deploying (13.05) is free on Hugging Face Spaces.
 - **Book (optional, best single reference):** Chip Huyen, *AI Engineering* (O'Reilly, 2025).

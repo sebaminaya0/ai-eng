@@ -10,6 +10,7 @@ Self-study curriculum: 17 chapters, ~90 lessons, one Jupyter notebook each. Free
 brew install ollama libomp          # local LLMs; libomp is needed by LightGBM/XGBoost
 brew services start ollama && ollama pull qwen3:1.7b
 ollama pull llama-guard3:1b             # chapter 11 guardrails (~1.6 GB)
+ollama pull qwen3-vl:2b-instruct        # chapter 14 vision (~1.9 GB)
 uv sync
 uv run python -m ipykernel install --user --name ai-eng
 cp .env.example .env                # optional: free keys for Gemini, Groq, OpenRouter
@@ -17,7 +18,8 @@ uv run playwright install chromium  # chapter 09 browser agent
 ```
 Then open `chapters/00-setup/01-welcome.ipynb`.
 
-Every lesson runs with **zero API keys** on local Ollama. The `aieng` package holds the little shared code: `aieng.DATA`
+Every lesson runs with **zero API keys** on local Ollama (cells that compare against free-tier APIs skip themselves without a key).
+Chapters 13–15 download a few models from Hugging Face on first run (SD-Turbo, Whisper, Kokoro, ColSmol, GPT-2…: ~8 GB in total). The `aieng` package holds the little shared code: `aieng.DATA`
 (git-ignored `data/` folder) and `aieng.llm` (one OpenAI-compatible client for every provider; pick with `AIENG_PROVIDER` in `.env`).
 
 ## Curriculum
@@ -61,8 +63,11 @@ Each milestone is a portfolio project. Tick when done.
 M0: 1 week · M1: 6-10 weeks · M2: 2 weeks · M3: 3 weeks · M4: 3 weeks · M5: 4 weeks · M6: 3 weeks · M7: open-ended.
 
 ## How lessons grow
-Chapters 00–12 are fully written and verified end to end on an Apple Silicon Mac (explanations, runnable code, exercises),
-with no Docker and no paid keys. Chapters 13–16 are stubs (goals, curated resources, exercises): ask Claude to flesh them out when you reach them.
+All chapters (00–16) are fully written and verified end to end on an Apple Silicon Mac (explanations, runnable code, exercises),
+with no Docker and no paid keys. Things that need a GPU server or a paid service (vLLM, Modal, realtime voice APIs, nanochat) are shown as
+code + exercises.
 
 Shared code in `aieng/`: `aieng.llm` (any provider), `aieng.rag` (the 08.01 pipeline over a 3.2k-passage Wikipedia corpus, reused in 08–11).
-Chapter-local helpers: `chapters/09-agents/mcp_server.py` (MCP server), `chapters/12-fine-tuning/task.py` (fine-tuning task + scorer).
+Chapter-local helpers: `chapters/09-agents/mcp_server.py` (MCP server), `chapters/12-fine-tuning/task.py` (fine-tuning task + scorer),
+`chapters/13-serving-and-deployment/` (`app.py` RAG API, `ui_gradio.py` / `ui_streamlit.py` UIs, `serve.py` API + UI in one process, deployed in 13.05),
+`chapters/14-multimodal/colpali_embed.py` (ColPali embeddings, run in an isolated env).

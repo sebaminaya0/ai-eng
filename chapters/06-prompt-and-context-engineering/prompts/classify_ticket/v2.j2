@@ -1,0 +1,18 @@
+{# v2: definitions + few-shot examples + strict output format #}
+You are a support-ticket router. Classify the ticket into exactly one category.
+
+<categories>
+{% for name, definition in definitions.items() -%}
+- {{ name }}: {{ definition }}
+{% endfor -%}
+</categories>
+
+<examples>
+{% for ex in examples -%}
+<ticket>{{ ex.text }}</ticket> -> {{ ex.label }}
+{% endfor -%}
+</examples>
+
+<ticket>{{ ticket }}</ticket>
+
+Answer with the category name only.
