@@ -16,9 +16,9 @@ load_dotenv()
 
 # name: (base_url, api-key env var, default model). Model ids change: check provider docs.
 PROVIDERS = {
-    "gemini": ("https://generativelanguage.googleapis.com/v1beta/openai/", "GEMINI_API_KEY", "gemini-flash-latest"),
+    "gemini": ("https://generativelanguage.googleapis.com/v1beta/openai/", "GEMINI_API_KEY", "gemini-flash-lite-latest"),
     "groq": ("https://api.groq.com/openai/v1", "GROQ_API_KEY", "openai/gpt-oss-120b"),
-    "openrouter": ("https://openrouter.ai/api/v1", "OPENROUTER_API_KEY", "meta-llama/llama-3.3-70b-instruct:free"),
+    "openrouter": ("https://openrouter.ai/api/v1", "OPENROUTER_API_KEY", "openrouter/free"),
     "openai": ("https://api.openai.com/v1", "OPENAI_API_KEY", "gpt-5-mini"),
     "ollama": ("http://localhost:11434/v1", None, os.getenv("OLLAMA_MODEL", "qwen3:1.7b")),
 }
