@@ -35,19 +35,19 @@ Legend: **F** free / open source · **FT** free tier · **P** paid
 | Structured output | Pydantic + native structured outputs (F) | Instructor, Outlines, BAML | 05 |
 | Prompt optimisation | hand-written + evals | DSPy | 06 |
 | Doc parsing | PyMuPDF / MarkItDown (F) | Docling, Unstructured, LlamaParse (P), Reducto (P) | 08 |
-| Vector store | Chroma (F) | LanceDB, Qdrant, Weaviate, Milvus, pgvector, Pinecone (FT/P), FAISS (library) | 07 |
+| Vector store | Chroma (F) | LanceDB, Qdrant (local mode or server), sqlite-vec, pgvector, Weaviate, Milvus, Pinecone (FT/P), FAISS (library) | 07 |
 | Lexical search | bm25s (F) | Elasticsearch/OpenSearch, Postgres FTS, Tantivy | 07 |
 | RAG framework | none (from scratch) first | LangChain, LlamaIndex, Haystack | 08 |
 | Agent framework | from scratch first, then LangGraph (F) | OpenAI Agents SDK, Claude Agent SDK, Google ADK, PydanticAI, smolagents, CrewAI, Microsoft Agent Framework | 09 |
 | Tool protocol | MCP (F) | provider-native function calling | 09 |
-| Sandboxes | Docker (F) | E2B (FT), Modal (FT), Daytona | 09 |
+| Sandboxes | restricted interpreter + subprocess limits (F, not a security boundary) | Docker, E2B (FT), Modal (FT), Daytona, Pyodide/WASM | 09 |
 
 ## 4. Quality & operations
 
 | Layer | Default | Alternatives | Chapter |
 |---|---|---|---|
-| Evals | own pytest-style evals + promptfoo (F) | DeepEval, Ragas, Inspect AI, Braintrust (FT), LangSmith/Langfuse datasets | 10 |
-| Tracing / observability | Langfuse self-hosted (F) | LangSmith (FT), Arize Phoenix (F), W&B Weave (FT), Logfire (FT), Helicone (FT) | 11 |
+| Evals | own pytest-style evals + promptfoo + Inspect AI (F) | DeepEval, Ragas (run isolated: they conflict with this repo's pins), Braintrust (FT), LangSmith/Langfuse datasets | 10 |
+| Tracing / observability | Arize Phoenix, local in-process (F) | Langfuse (self-host F / cloud FT), LangSmith (FT), W&B Weave (FT), Logfire (FT), Helicone (FT), Opik | 11 |
 | Gateway / routing | LiteLLM proxy (F) | OpenRouter, Portkey, Cloudflare AI Gateway | 11 |
 | Guardrails | Presidio + Llama Guard (F) | NeMo Guardrails, Guardrails AI, provider moderation APIs | 11 |
 
@@ -55,7 +55,7 @@ Legend: **F** free / open source · **FT** free tier · **P** paid
 
 | Layer | Default | Alternatives | Chapter |
 |---|---|---|---|
-| Fine-tuning | Unsloth on Colab/Kaggle (F) | HF TRL + PEFT, Axolotl, LLaMA-Factory, MLX-LM, managed FT (OpenAI, Together — P) | 12 |
+| Fine-tuning | HF TRL + PEFT on Mac (MPS) and MLX-LM (F) | Unsloth on Colab/Kaggle free GPUs, Axolotl, LLaMA-Factory, managed FT (OpenAI, Together — P) | 12 |
 | Experiment tracking | W&B (FT) | MLflow, TensorBoard, Trackio | 12 |
 | Quantization | GGUF via llama.cpp (F) | AWQ, GPTQ, bitsandbytes, MLX quants | 13 |
 | Inference server | vLLM (F) | SGLang, TGI, TensorRT-LLM, llama.cpp server, Ollama | 13 |
@@ -72,6 +72,13 @@ Legend: **F** free / open source · **FT** free tier · **P** paid
 | Text-to-speech | Kokoro (F) | ElevenLabs (P), OpenAI TTS (P) | 14 |
 | Voice agents | Pipecat (F) | LiveKit Agents, realtime APIs | 14 |
 | Image generation | diffusers (F) | ComfyUI, API models | 14 |
+
+## Version gotchas found while building the lessons (Oct 2026)
+- `mcp` 2.x renamed `FastMCP` → `MCPServer` (`from mcp.server.mcpserver import MCPServer`) and snake_cased fields (`input_schema`).
+- Haystack 3.x moved its sentence-transformers embedders out of core (08.03 uses a 6-line custom component instead).
+- TRL 1.15 trainers require a Triton (Linux-only) fused LM head → pinned `trl<1.15` for macOS.
+- Ollama's OpenAI-compatible API ignores `tool_choice`; agent loops nudge instead (08.06, 09.x).
+- `arize-phoenix` needs `graphql-core<3.3`. Ragas 0.4.3, DeepEval and current Inspect AI (needs openai>=3.4) conflict with this env: run them with `uv run --isolated --with ...`.
 
 ## Where money might be unavoidable
 - **Frontier closed models** (OpenAI/Anthropic) for comparisons: ~$5–20 total covers the whole course if you keep tests small. Optional; free tiers do most work.
